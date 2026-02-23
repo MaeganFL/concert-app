@@ -1,0 +1,350 @@
+/* =========================================================
+   Concert Companion App — Accessible Grayscale Theme
+   + Mood Glow shifts based on selected vibe (CSS variable)
+   Copy/paste this entire file as style.css
+   ========================================================= */
+
+/* ---------- Color system ---------- */
+:root {
+  /* Core grayscale palette */
+  --bg: #1a1c1f;          /* deep charcoal */
+  --bg-soft: #23262b;     /* charcoal gray */
+  --card: #2a2e34;        /* card background */
+  --card-soft: #32363d;   /* subtle contrast */
+
+  --text: #f2f3f5;        /* near-white */
+  --text-muted: #c7c9ce;  /* soft gray */
+  --text-subtle: #9da1a8; /* darker muted gray */
+
+  /* Borders / shadow */
+  --border: rgba(255, 255, 255, 0.16);
+  --border-soft: rgba(255, 255, 255, 0.12);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.50);
+
+  /* Neutral accent */
+  --accent: #dcdfe4;
+  --accent-soft: rgba(220, 223, 228, 0.18);
+
+  /* Mood glow: DEFAULT (will be updated via JS) */
+  --moodGlow: rgba(139, 220, 255, 0.20);
+
+  /* Focus ring (keyboard accessibility) */
+  --focus: rgba(242, 243, 245, 0.70);
+}
+
+/* ---------- Base resets ---------- */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+
+  /* IMPORTANT: Mood-dependent glow */
+  background:
+    radial-gradient(
+      1000px 600px at 30% 10%,
+      var(--moodGlow) 0%,
+      var(--bg) 55%
+    );
+}
+
+/* ---------- Typography ---------- */
+h1, h2, h3 { margin: 0; letter-spacing: 0.2px; }
+
+p {
+  margin: 0.5rem 0;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.subtitle {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.note {
+  color: rgba(242, 243, 245, 0.82);
+  font-size: 0.95rem;
+}
+
+.hint {
+  color: rgba(242, 243, 245, 0.78);
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+/* ---------- Layout ---------- */
+header {
+  position: relative;
+  padding: 26px 16px 16px;
+  text-align: center;
+}
+
+/* Dark overlay behind header content to keep contrast stable */
+header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.45) 0%,
+      rgba(0, 0, 0, 0.25) 45%,
+      rgba(0, 0, 0, 0.00) 100%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Keep header content above the overlay */
+header > * {
+  position: relative;
+  z-index: 1;
+}
+
+header h1 {
+  margin: 6px 0 2px;
+  font-size: 1.9rem;
+  color: var(--text);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+.subtitle,
+.event-meta {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.50);
+}
+
+.event-meta {
+  margin: 12px auto 0;
+  max-width: 860px;
+  display: grid;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px 14px 40px;
+  display: grid;
+  gap: 14px;
+}
+
+footer {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 18px 10px 30px;
+  font-size: 0.9rem;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: rgba(42, 46, 52, 0.96);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.card h2 {
+  margin: 8px 0 10px;
+  font-size: 1.15rem;
+}
+
+.card h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+}
+
+.card p { color: var(--text); }
+
+/* ---------- Utility rows ---------- */
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.label {
+  min-width: 80px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Inputs ---------- */
+select,
+input[type="email"],
+textarea {
+  width: 100%;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+select:focus,
+input[type="email"]:focus,
+textarea:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(242, 243, 245, 0.12);
+}
+
+textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+input[type="checkbox"] {
+  transform: translateY(1px);
+}
+
+/* ---------- Pill buttons ---------- */
+.pill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 16px;
+}
+
+@media (min-width: 640px) {
+  .pill-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pill {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(242, 243, 245, 0.95);
+  padding: 10px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.06s ease, background 0.12s ease, border-color 0.12s ease;
+  text-align: center;
+  font-weight: 650;
+  user-select: none;
+}
+
+.pill:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pill:active { transform: translateY(0); }
+
+.pill.active {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.40);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.22) inset;
+}
+
+/* Keyboard focus visibility */
+.pill:focus-visible,
+.primary:focus-visible,
+.secondary:focus-visible,
+select:focus-visible,
+input[type="email"]:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Primary / Secondary buttons ---------- */
+.primary,
+.secondary {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 750;
+  transition: background 0.12s ease, transform 0.06s ease, border-color 0.12s ease;
+}
+
+.primary:hover,
+.secondary:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.primary:active,
+.secondary:active {
+  transform: translateY(1px);
+}
+
+.primary {
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.20),
+    rgba(255, 255, 255, 0.08)
+  );
+  color: var(--text);
+}
+
+.secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+/* ---------- Status messages ---------- */
+.success {
+  margin-top: 10px;
+  font-weight: 750;
+  color: rgba(242, 243, 245, 0.95);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+
+.error {
+  color: rgba(255, 209, 209, 0.95);
+  font-weight: 750;
+}
+
+/* ---------- Charts ---------- */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+@media (min-width: 780px) {
+  .chart-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.chart-card {
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* ---------- Links ---------- */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }

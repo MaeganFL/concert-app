@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concert Companion | Audience Interaction</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Chart.js for quick visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Concert Companion</h1>
+    <p class="subtitle">
+      Scan • Tap • Share your vibe & the story you hear
+    </p>
+
+    <div class="event-meta">
+      <div><strong>Artist:</strong> Markus Gottschlich</div>
+      <div><strong>Location:</strong> Leepa-Rattner Museum of Art at St. Petersburg College </div>
+      <div><strong>Participation:</strong> Anonymous by default</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Intro / consent -->
+    <section class="card" id="intro">
+      <h2>Welcome</h2>
+      <p>
+        This short web app allows you to participate in the performance by selecting your current mood and what story you feel the music is telling. Your responses may be visualized at the end
+        of the show as a collective audience reflection.
+      </p>
+      <p class="note">
+        No login needed. Please avoid entering personal information in comments.
+      </p>
+    </section>
+
+    <!-- Interaction form -->
+    <section class="card" id="interaction">
+      <h2>1) Select your vibe</h2>
+
+      <div class="pill-grid" id="emotionButtons" aria-label="Emotion options">
+        <!-- Buttons injected by script.js -->
+      </div>
+
+      <h2>2) What story does the music suggest?</h2>
+      <div class="pill-grid" id="storyButtons" aria-label="Story options">
+        <!-- Buttons injected by script.js -->
+      </div>
+
+      <h2>3) Optional: Where are we in the concert?</h2>
+      <div class="row">
+        <label for="segment" class="label">Moment</label>
+        <select id="segment">
+          <option value="">Not sure / prefer not to say</option>
+          <option value="opening">Opening</option>
+          <option value="middle">Middle</option>
+          <option value="finale">Finale</option>
+          <option value="encore">Encore</option>
+        </select>
+      </div>
+
+      <h2>4) Optional: One short note</h2>
+      <textarea id="comment" maxlength="140" placeholder="Optional (140 characters max)…"></textarea>
+      <div class="hint" id="charHint">0 / 140</div>
+
+      <button class="primary" id="submitResponse">Submit Response</button>
+
+      <div class="success" id="successMsg" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Email opt-in -->
+    <section class="card" id="swag">
+      <h2>Want digital swag?</h2>
+      <p>
+        Optional: enter your email to receive concert extras (video link, curated clips, and highlights).
+        This is separate from your anonymous response data.
+      </p>
+
+      <div class="row">
+        <input type="checkbox" id="optIn" />
+        <label for="optIn">Yes, email me extras</label>
+      </div>
+
+      <div class="row" id="emailRow" style="display:none;">
+        <label for="email" class="label">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" />
+        <button class="secondary" id="saveEmail">Save</button>
+      </div>
+
+      <div class="hint" id="emailMsg" aria-live="polite"></div>
+    </section>
+
+    <!-- Visualization -->
+    <section class="card" id="visualize">
+      <div class="between">
+        <h2>Audience Snapshot</h2>
+        <button class="secondary" id="refreshCharts">Refresh</button>
+      </div>
+
+      <p class="note">
+        This view summarizes responses saved on this device. (If you later connect a database,
+        this can show the full audience.)
+      </p>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h3>Vibes</h3>
+          <canvas id="emotionChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Stories</h3>
+          <canvas id="storyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="secondary" id="exportCSV">Export Responses (CSV)</button>
+        <button class="secondary" id="clearLocal">Clear Local Data</button>
+      </div>
+      <div class="hint" id="exportMsg" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 | Interactive Audience Research Prototype | Designed by Maegan Marlow</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
