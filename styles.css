@@ -1,38 +1,28 @@
 /* =========================================================
-   Concert Companion App — Accessible Grayscale Theme
-   + Mood Glow shifts based on selected vibe (CSS variable)
-   Copy/paste this entire file as style.css
-   ========================================================= */
+   Concert Companion App — Accessible Dark Theme (Screenplay Mode)
+   Supports HTML structure + mood glow variable
+  ========================================================= */
 
-/* ---------- Color system ---------- */
 :root {
-  /* Core grayscale palette */
-  --bg: #1a1c1f;          /* deep charcoal */
-  --bg-soft: #23262b;     /* charcoal gray */
-  --card: #2a2e34;        /* card background */
-  --card-soft: #32363d;   /* subtle contrast */
+  --bg: #1a1c1f;
+  --card: rgba(42, 46, 52, 0.96);
+  --card-soft: rgba(255, 255, 255, 0.06);
 
-  --text: #f2f3f5;        /* near-white */
-  --text-muted: #c7c9ce;  /* soft gray */
-  --text-subtle: #9da1a8; /* darker muted gray */
+  --text: #f2f3f5;
+  --text-muted: #c7c9ce;
 
-  /* Borders / shadow */
   --border: rgba(255, 255, 255, 0.16);
   --border-soft: rgba(255, 255, 255, 0.12);
+
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.50);
 
-  /* Neutral accent */
-  --accent: #dcdfe4;
-  --accent-soft: rgba(220, 223, 228, 0.18);
-
-  /* Mood glow: DEFAULT (will be updated via JS) */
+  /* Mood glow default (JS updates this) */
   --moodGlow: rgba(139, 220, 255, 0.20);
 
-  /* Focus ring (keyboard accessibility) */
-  --focus: rgba(242, 243, 245, 0.70);
+  /* Focus ring (accessible) */
+  --focus: rgba(242, 243, 245, 0.78);
 }
 
-/* ---------- Base resets ---------- */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 
@@ -41,7 +31,6 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   color: var(--text);
 
-  /* IMPORTANT: Mood-dependent glow */
   background:
     radial-gradient(
       1000px 600px at 30% 10%,
@@ -50,71 +39,41 @@ body {
     );
 }
 
-/* ---------- Typography ---------- */
-h1, h2, h3 { margin: 0; letter-spacing: 0.2px; }
-
-p {
-  margin: 0.5rem 0;
-  line-height: 1.45;
-  color: var(--text);
-}
-
-.subtitle {
-  margin-top: 6px;
-  color: var(--text-muted);
-  font-size: 1rem;
-}
-
-.note {
-  color: rgba(242, 243, 245, 0.82);
-  font-size: 0.95rem;
-}
-
-.hint {
-  color: rgba(242, 243, 245, 0.78);
-  font-size: 0.9rem;
-  margin-top: 6px;
-}
-
-/* ---------- Layout ---------- */
+/* ---------- Header ---------- */
 header {
   position: relative;
   padding: 26px 16px 16px;
   text-align: center;
 }
 
-/* Dark overlay behind header content to keep contrast stable */
 header::before {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.45) 0%,
-      rgba(0, 0, 0, 0.25) 45%,
-      rgba(0, 0, 0, 0.00) 100%
-    );
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.50) 0%,
+    rgba(0,0,0,0.30) 45%,
+    rgba(0,0,0,0.00) 100%
+  );
   pointer-events: none;
   z-index: 0;
 }
 
-/* Keep header content above the overlay */
-header > * {
-  position: relative;
-  z-index: 1;
-}
+header > * { position: relative; z-index: 1; }
 
 header h1 {
   margin: 6px 0 2px;
-  font-size: 1.9rem;
-  color: var(--text);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+  font-size: 2rem;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.55);
 }
 
-.subtitle,
-.event-meta {
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.50);
+.subtitle {
+  margin-top: 6px;
+  color: var(--text-muted);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.50);
+  font-size: 1.05rem;
+  letter-spacing: 0.3px;
 }
 
 .event-meta {
@@ -124,8 +83,10 @@ header h1 {
   gap: 6px;
   color: var(--text-muted);
   font-size: 0.95rem;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.45);
 }
 
+/* ---------- Layout ---------- */
 main {
   max-width: 900px;
   margin: 0 auto;
@@ -143,7 +104,7 @@ footer {
 
 /* ---------- Cards ---------- */
 .card {
-  background: rgba(42, 46, 52, 0.96);
+  background: var(--card);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   border-radius: 16px;
@@ -155,39 +116,24 @@ footer {
   font-size: 1.15rem;
 }
 
-.card h3 {
-  margin: 0 0 10px;
-  font-size: 1.05rem;
-  color: var(--text-muted);
+p {
+  margin: 0.5rem 0;
+  line-height: 1.45;
+  color: var(--text);
 }
 
-.card p { color: var(--text); }
-
-/* ---------- Utility rows ---------- */
-.row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin: 10px 0;
+.note {
+  color: rgba(242, 243, 245, 0.90);
+  font-size: 0.96rem;
 }
 
-.label {
-  min-width: 80px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+.hint {
+  color: rgba(242, 243, 245, 0.78);
+  font-size: 0.9rem;
+  margin-top: 6px;
 }
 
 /* ---------- Inputs ---------- */
-select,
 input[type="email"],
 textarea {
   width: 100%;
@@ -199,7 +145,11 @@ textarea {
   outline: none;
 }
 
-select:focus,
+input[type="email"]::placeholder,
+textarea::placeholder {
+  color: rgba(242, 243, 245, 0.55);
+}
+
 input[type="email"]:focus,
 textarea:focus {
   border-color: rgba(255, 255, 255, 0.35);
@@ -211,11 +161,14 @@ textarea {
   resize: vertical;
 }
 
+/* Checkbox */
 input[type="checkbox"] {
-  transform: translateY(1px);
+  width: 18px;
+  height: 18px;
+  accent-color: rgba(242, 243, 245, 0.85);
 }
 
-/* ---------- Pill buttons ---------- */
+/* ---------- Pills / button grids ---------- */
 .pill-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -232,13 +185,15 @@ input[type="checkbox"] {
 .pill {
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(242, 243, 245, 0.95);
+  color: rgba(242, 243, 245, 0.96);
+
   padding: 10px 12px;
   border-radius: 999px;
+
   cursor: pointer;
   transition: transform 0.06s ease, background 0.12s ease, border-color 0.12s ease;
   text-align: center;
-  font-weight: 650;
+  font-weight: 700;
   user-select: none;
 }
 
@@ -247,52 +202,29 @@ input[type="checkbox"] {
   background: rgba(255, 255, 255, 0.12);
 }
 
-.pill:active { transform: translateY(0); }
-
 .pill.active {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.40);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.50);
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.22) inset;
 }
 
-/* Keyboard focus visibility */
-.pill:focus-visible,
-.primary:focus-visible,
-.secondary:focus-visible,
-select:focus-visible,
-input[type="email"]:focus-visible,
-textarea:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-}
-
-/* ---------- Primary / Secondary buttons ---------- */
+/* ---------- Main buttons ---------- */
 .primary,
 .secondary {
   border: 1px solid var(--border-soft);
   border-radius: 12px;
   padding: 10px 12px;
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 800;
   transition: background 0.12s ease, transform 0.06s ease, border-color 0.12s ease;
-}
-
-.primary:hover,
-.secondary:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-}
-
-.primary:active,
-.secondary:active {
-  transform: translateY(1px);
 }
 
 .primary {
   width: 100%;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.20),
-    rgba(255, 255, 255, 0.08)
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.10)
   );
   color: var(--text);
 }
@@ -302,17 +234,32 @@ textarea:focus-visible {
   color: var(--text);
 }
 
-/* ---------- Status messages ---------- */
+.primary:active,
+.secondary:active {
+  transform: translateY(1px);
+}
+
+/* ---------- Focus states (keyboard accessibility) ---------- */
+.pill:focus-visible,
+.primary:focus-visible,
+.secondary:focus-visible,
+input[type="email"]:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Messages ---------- */
 .success {
   margin-top: 10px;
-  font-weight: 750;
+  font-weight: 800;
   color: rgba(242, 243, 245, 0.95);
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
 }
 
 .error {
   color: rgba(255, 209, 209, 0.95);
-  font-weight: 750;
+  font-weight: 800;
 }
 
 /* ---------- Charts ---------- */
@@ -324,9 +271,7 @@ textarea:focus-visible {
 }
 
 @media (min-width: 780px) {
-  .chart-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .chart-grid { grid-template-columns: 1fr 1fr; }
 }
 
 .chart-card {
@@ -342,9 +287,5 @@ canvas {
 }
 
 /* ---------- Links ---------- */
-a {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-a:hover { text-decoration: underline; }
+a { color: var(--text); text-decoration: underline; }
+a:hover { opacity: 0.9; }

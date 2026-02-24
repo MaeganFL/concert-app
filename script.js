@@ -1,21 +1,29 @@
-// Concert Companion App
-// - Mood (vibe coding) + Narrative selection
-// - LocalStorage persistence (easy + reliable for a prototype)
-// - Simple visualization (Chart.js)
-// - Email opt-in stored separately
-// - NEW: background glow changes based on selected vibe
+// Concert Companion App (Screenplay mode)
+// - Audience selects Mood + Setting
+// - Optional short note (comment)
+// - Responses stored locally (prototype)
+// - Visualization via Chart.js
+// - Background glow changes based on selected mood
+// - Safe handling if Chart.js fails to load
+// - Resets selections after submit 
 
-const EMOTIONS = [
+const MOODS = [
   "Happy", "Relaxed", "Melancholy", "Excited",
   "Calm", "Tense", "Awe", "Reflective"
 ];
 
-const STORIES = [
-  "Journey", "Conflict", "Memory", "Loss",
-  "Renewal", "Wonder", "Resilience", "Uncertainty"
+const SETTINGS = [
+  "A Rainy City",
+  "A Deep Forest",
+  "An Interior Memory",
+  "A Desert Road",
+  "A Quiet Beach at Night",
+  "A Crowded Train Station",
+  "A Snowy Mountain Pass",
+  "A Sunlit Kitchen"
 ];
 
-// NEW: mood-based glow colors
+// Mood-based glow colors
 const MOOD_GLOWS = {
   "Happy": "rgba(255, 230, 150, .25)",
   "Relaxed": "rgba(150, 255, 220, .20)",
@@ -27,17 +35,19 @@ const MOOD_GLOWS = {
   "Reflective": "rgba(210, 190, 255, .22)"
 };
 
-// Keys for local storage
+const DEFAULT_GLOW = "rgba(139,220,255,.20)";
+
+// Storage keys (local prototype)
 const RESPONSES_KEY = "concertResponses";
 const EMAILS_KEY = "concertEmails";
 
-let selectedEmotion = "";
-let selectedStory = "";
+let selectedMood = "";
+let selectedSetting = "";
 
-const emotionButtonsWrap = document.getElementById("emotionButtons");
-const storyButtonsWrap = document.getElementById("storyButtons");
+// IDs from your HTML
+const moodButtonsWrap = document.getElementById("emotionButtons");
+const settingButtonsWrap = document.getElementById("storyButtons");
 
-const segmentEl = document.getElementById("segment");
 const commentEl = document.getElementById("comment");
 const charHintEl = document.getElementById("charHint");
 const successMsgEl = document.getElementById("successMsg");
@@ -50,11 +60,20 @@ const emailMsgEl = document.getElementById("emailMsg");
 const refreshBtn = document.getElementById("refreshCharts");
 const exportBtn = document.getElementById("exportCSV");
 const clearBtn = document.getElementById("clearLocal");
+const exportMsgEl = document.getElementById("exportMsg");
 
-let emotionChart = null;
-let storyChart = null;
+const submitBtn = document.getElementById("submitResponse");
+const saveEmailBtn = document.getElementById("saveEmail");
 
-// ---------- UI helpers ----------
+let moodChart = null;
+let settingChart = null;
+
+// Friendly console warning if Chart.js doesn't load
+if (typeof Chart === "undefined") {
+  console.warn("Chart.js is not loaded. Charts will not render.");
+}
+
+// ---------- Helpers ----------
 function createPill(label, group) {
   const btn = document.createElement("button");
   btn.type = "button";
@@ -62,19 +81,15 @@ function createPill(label, group) {
   btn.textContent = label;
 
   btn.addEventListener("click", () => {
-    if (group === "emotion") {
-      selectedEmotion = label;
-      setActivePill(emotionButtonsWrap, label);
+    if (group === "mood") {
+      selectedMood = label;
+      setActivePill(moodButtonsWrap, label);
 
-      // NEW: update mood glow based on selected vibe
-      document.documentElement.style.setProperty(
-        "--moodGlow",
-        MOOD_GLOWS[label] || "rgba(139,220,255,.20)"
-      );
-
+      // Update mood glow
+      document.documentElement.style.setProperty("--moodGlow", MOOD_GLOWS[label] || DEFAULT_GLOW);
     } else {
-      selectedStory = label;
-      setActivePill(storyButtonsWrap, label);
+      selectedSetting = label;
+      setActivePill(settingButtonsWrap, label);
     }
   });
 
@@ -84,6 +99,8 @@ function createPill(label, group) {
 function setActivePill(container, label) {
   const pills = container.querySelectorAll(".pill");
   pills.forEach(p => p.classList.remove("active"));
+  if (!label) return;
+
   const active = Array.from(pills).find(p => p.textContent === label);
   if (active) active.classList.add("active");
 }
@@ -100,16 +117,6 @@ function saveJSON(key, data) {
   localStorage.setItem(key, JSON.stringify(data));
 }
 
-// ---------- Build buttons ----------
-function renderButtons() {
-  emotionButtonsWrap.innerHTML = "";
-  storyButtonsWrap.innerHTML = "";
-
-  EMOTIONS.forEach(e => emotionButtonsWrap.appendChild(createPill(e, "emotion")));
-  STORIES.forEach(s => storyButtonsWrap.appendChild(createPill(s, "story")));
-}
-
-// ---------- Response storage ----------
 function getResponses() {
   return loadJSON(RESPONSES_KEY, []);
 }
@@ -120,7 +127,6 @@ function addResponse(response) {
   saveJSON(RESPONSES_KEY, responses);
 }
 
-// Separate storage for emails (opt-in only)
 function getEmails() {
   return loadJSON(EMAILS_KEY, []);
 }
@@ -131,7 +137,6 @@ function addEmail(emailRecord) {
   saveJSON(EMAILS_KEY, emails);
 }
 
-// Create an anonymous session id (stored locally)
 function getSessionId() {
   const k = "concertSessionId";
   let id = localStorage.getItem(k);
@@ -142,39 +147,58 @@ function getSessionId() {
   return id;
 }
 
-// ---------- Submit logic ----------
-document.getElementById("submitResponse").addEventListener("click", () => {
-  successMsgEl.textContent = "";
+function setMessage(el, msg, isError = false) {
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle("error", isError);
+}
 
-  if (!selectedEmotion || !selectedStory) {
-    successMsgEl.style.color = "#ffd1d1";
-    successMsgEl.textContent = "Please select both a vibe and a story.";
+// ---------- Render buttons ----------
+function renderButtons() {
+  moodButtonsWrap.innerHTML = "";
+  settingButtonsWrap.innerHTML = "";
+
+  MOODS.forEach(m => moodButtonsWrap.appendChild(createPill(m, "mood")));
+  SETTINGS.forEach(s => settingButtonsWrap.appendChild(createPill(s, "setting")));
+}
+
+// ---------- Submit ----------
+submitBtn.addEventListener("click", () => {
+  setMessage(successMsgEl, "", false);
+
+  if (!selectedMood || !selectedSetting) {
+    setMessage(successMsgEl, "Please choose a mood and a setting.", true);
     return;
   }
 
   const response = {
     id: crypto?.randomUUID ? crypto.randomUUID() : `r_${Date.now()}_${Math.random().toString(16).slice(2)}`,
     timestamp: new Date().toISOString(),
-    emotion: selectedEmotion,
-    story: selectedStory,
-    segment: segmentEl.value || "",
-    comment: (commentEl.value || "").trim(),
+    mood: selectedMood,
+    setting: selectedSetting,
+    note: (commentEl.value || "").trim(),
     sessionId: getSessionId()
   };
 
   addResponse(response);
 
-  successMsgEl.style.color = "rgba(242,243,245,0.95)";
-  successMsgEl.textContent = "Thanks! Your response was saved.";
+  setMessage(successMsgEl, "Added to the script — thank you.", false);
 
-  // Reset only comment (keep selections in case they want to submit again)
+  // Reset note + counter
   commentEl.value = "";
   charHintEl.textContent = "0 / 140";
+
+  // Reset selections + glow (clean UX)
+  selectedMood = "";
+  selectedSetting = "";
+  setActivePill(moodButtonsWrap, "");
+  setActivePill(settingButtonsWrap, "");
+  document.documentElement.style.setProperty("--moodGlow", DEFAULT_GLOW);
 
   renderCharts();
 });
 
-// ---------- Comment character counter ----------
+// ---------- Character counter ----------
 commentEl.addEventListener("input", () => {
   const len = commentEl.value.length;
   charHintEl.textContent = `${len} / 140`;
@@ -183,26 +207,23 @@ commentEl.addEventListener("input", () => {
 // ---------- Email opt-in ----------
 optInEl.addEventListener("change", () => {
   emailRowEl.style.display = optInEl.checked ? "flex" : "none";
-  emailMsgEl.textContent = "";
+  setMessage(emailMsgEl, "", false);
 });
 
-document.getElementById("saveEmail").addEventListener("click", () => {
-  emailMsgEl.textContent = "";
+saveEmailBtn.addEventListener("click", () => {
+  setMessage(emailMsgEl, "", false);
 
   if (!optInEl.checked) return;
 
   const email = (emailEl.value || "").trim();
   if (!email) {
-    emailMsgEl.style.color = "#ffd1d1";
-    emailMsgEl.textContent = "Please enter an email address.";
+    setMessage(emailMsgEl, "Please enter an email address.", true);
     return;
   }
 
-  // Basic email pattern check
   const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   if (!ok) {
-    emailMsgEl.style.color = "#ffd1d1";
-    emailMsgEl.textContent = "That email address doesn’t look valid.";
+    setMessage(emailMsgEl, "That email address doesn’t look valid.", true);
     return;
   }
 
@@ -213,65 +234,82 @@ document.getElementById("saveEmail").addEventListener("click", () => {
     event: "Markus Gottschlich Concert"
   });
 
-  emailMsgEl.style.color = "rgba(242,243,245,0.95)";
-  emailMsgEl.textContent = "Saved — thank you!";
-
+  setMessage(emailMsgEl, "Saved — we’ll send highlights after the show.", false);
   emailEl.value = "";
 });
 
-// ---------- Visualization ----------
-function countByField(data, field, orderedLabels) {
+// ---------- Charts ----------
+function countByKey(data, key, orderedLabels) {
   const counts = {};
   orderedLabels.forEach(l => (counts[l] = 0));
+
   data.forEach(item => {
-    const v = item[field];
+    const v = item[key];
     if (counts[v] !== undefined) counts[v] += 1;
     else counts[v] = 1;
   });
+
   return counts;
 }
 
 function renderCharts() {
+  // If Chart.js failed to load, quietly skip chart rendering
+  if (typeof Chart === "undefined") {
+    setMessage(exportMsgEl, "Charts unavailable (Chart.js did not load).", true);
+    return;
+  }
+
   const responses = getResponses();
 
-  const emotionCounts = countByField(responses, "emotion", EMOTIONS);
-  const storyCounts = countByField(responses, "story", STORIES);
+  const moodCounts = countByKey(responses, "mood", MOODS);
+  const settingCounts = countByKey(responses, "setting", SETTINGS);
 
-  const emotionLabels = Object.keys(emotionCounts);
-  const emotionValues = Object.values(emotionCounts);
+  const moodLabels = Object.keys(moodCounts);
+  const moodValues = Object.values(moodCounts);
 
-  const storyLabels = Object.keys(storyCounts);
-  const storyValues = Object.values(storyCounts);
+  const settingLabels = Object.keys(settingCounts);
+  const settingValues = Object.values(settingCounts);
 
-  const emotionCtx = document.getElementById("emotionChart").getContext("2d");
-  const storyCtx = document.getElementById("storyChart").getContext("2d");
+  const moodCanvas = document.getElementById("emotionChart");
+  const settingCanvas = document.getElementById("storyChart");
 
-  if (emotionChart) emotionChart.destroy();
-  if (storyChart) storyChart.destroy();
+  if (!moodCanvas || !settingCanvas) return;
 
-  emotionChart = new Chart(emotionCtx, {
+  const moodCtx = moodCanvas.getContext("2d");
+  const settingCtx = settingCanvas.getContext("2d");
+
+  if (moodChart) moodChart.destroy();
+  if (settingChart) settingChart.destroy();
+
+  moodChart = new Chart(moodCtx, {
     type: "bar",
     data: {
-      labels: emotionLabels,
-      datasets: [{ label: "Count", data: emotionValues }]
+      labels: moodLabels,
+      datasets: [{ label: "Count", data: moodValues }]
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+        x: { ticks: { maxRotation: 0, minRotation: 0 } }
+      }
     }
   });
 
-  storyChart = new Chart(storyCtx, {
+  settingChart = new Chart(settingCtx, {
     type: "bar",
     data: {
-      labels: storyLabels,
-      datasets: [{ label: "Count", data: storyValues }]
+      labels: settingLabels,
+      datasets: [{ label: "Count", data: settingValues }]
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+        x: { ticks: { autoSkip: true, maxRotation: 0, minRotation: 0 } }
+      }
     }
   });
 }
@@ -298,12 +336,11 @@ function toCSV(rows) {
 }
 
 exportBtn.addEventListener("click", () => {
-  const exportMsg = document.getElementById("exportMsg");
-  const responses = getResponses();
+  setMessage(exportMsgEl, "", false);
 
+  const responses = getResponses();
   if (!responses.length) {
-    exportMsg.style.color = "#ffd1d1";
-    exportMsg.textContent = "No responses to export yet.";
+    setMessage(exportMsgEl, "No responses to export yet.", true);
     return;
   }
 
@@ -313,15 +350,14 @@ exportBtn.addEventListener("click", () => {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "concert_responses.csv";
+  a.download = "concert_script_responses.csv";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 
   URL.revokeObjectURL(url);
 
-  exportMsg.style.color = "rgba(242,243,245,0.95)";
-  exportMsg.textContent = "Exported CSV.";
+  setMessage(exportMsgEl, "Exported CSV.", false);
 });
 
 // ---------- Clear local data ----------
@@ -332,12 +368,11 @@ clearBtn.addEventListener("click", () => {
   localStorage.removeItem(RESPONSES_KEY);
   localStorage.removeItem(EMAILS_KEY);
 
-  document.getElementById("exportMsg").style.color = "rgba(242,243,245,0.95)";
-  document.getElementById("exportMsg").textContent = "Local data cleared.";
-
+  setMessage(exportMsgEl, "Local data cleared.", false);
   renderCharts();
 });
 
 // ---------- Init ----------
 renderButtons();
 renderCharts();
+document.documentElement.style.setProperty("--moodGlow", DEFAULT_GLOW);
